@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clash Royale: History Edition</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #0f172a;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .game-container {
+            position: relative;
+            width: 420px;
+            height: 720px;
+            background: #1e293b;
+            border: 4px solid #334155;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        /* Overlays & Menus */
+        .screen-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.96);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            z-index: 1000;
+        }
+
+        .screen-overlay h1 {
+            color: #f59e0b;
+            font-size: 32px;
+            text-align: center;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+        }
+
+        .screen-overlay p {
+            color: #cbd5e1;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .menu-btn {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border: 2px solid #60a5fa;
+            color: #fff;
+            font-weight: 800;
+            padding: 12px 24px;
+            margin: 6px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            width: 80%;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+            transition: transform 0.15s ease, filter 0.15s ease;
+        }
+
+        .menu-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.15);
+        }
+
+        .quiz-card {
+            background: #1e293b;
+            border: 2px solid #f59e0b;
+            border-radius: 16px;
+            width: 100%;
+            padding: 20px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.6);
+        }
+
+        .quiz-card h3 {
+            color: #f59e0b;
+            font-size: 18px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .opt-btn {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 12px;
+            line-height: 1.3;
+            transition: all 0.15s ease;
+        }
+
+        .opt-btn:hover {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: #f59e0b;
+        }
+
+        /* Match Timer Header */
+        .timer-badge {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.85);
+            border: 2px solid #f59e0b;
+            color: #f59e0b;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-weight: 900;
+            font-size: 16px;
+            z-index: 50;
+        }
+
+        /* Arena Layout */
+        .arena {
+            position: relative;
+            width: 100%;
+            flex: 1;
+            background: radial-gradient(circle, #4ade80 0%, #16a34a 100%);
+            overflow: hidden;
+        }
+
+        .river {
+            position: absolute;
+            top: 270px;
+            width: 100%;
+            height: 40px;
+            background: #0284c7;
+            border-top: 3px solid #0369a1;
+            border-bottom: 3px solid #0369a1;
+        }
+
+        .bridge {
+            position: absolute;
+            width: 50px;
+            height: 46px;
+            top: -3px;
+            background: #78350f;
+            border: 2px solid #451a03;
+            border-radius: 4px;
+        }
+
+        .bridge-left { left: 60px; }
+        .bridge-right { right: 60px; }
+
+        /* Towers */
+        .tower {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 900;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.4);
+            z-index: 10;
+        }
+
+        .tower-hp {
+            position: absolute;
+            top: -12px;
+            width: 44px;
+            height: 6px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .tower-hp-fill {
+            height: 100%;
+            width: 100%;
+            background: #22c55e;
+        }
+
+        .enemy-tower { background: #ef4444; border: 3px solid #991b1b; color: #fff; }
+        .tower-enemy-king { top: 20px; left: 185px; width: 60px; height: 60px; }
+        .tower-enemy-left { top: 60px; left: 55px; }
+        .tower-enemy-right { top: 60px; right: 55px; }
+
+        .player-tower { background: #3b82f6; border: 3px solid #1d4ed8; color: #fff; }
+        .tower-player-king { bottom: 20px; left: 185px; width: 60px; height: 60px; }
+        .tower-player-left { bottom: 60px; left: 55px; }
+        .tower-player-right { bottom: 60px; right: 55px; }
+
+        /* Troop Graphics & Individual HP Bars */
+        .troop {
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            z-index: 20;
+        }
+
+        .troop-player { background: #60a5fa; border: 2px solid #1d4ed8; color: #fff; }
+        .troop-enemy { background: #f87171; border: 2px solid #991b1b; color: #fff; }
+
+        .troop-hp-container {
+            position: absolute;
+            top: -8px;
+            left: -1px;
+            width: 28px;
+            height: 4px;
+            background: rgba(0,0,0,0.8);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .troop-hp-bar {
+            height: 100%;
+            width: 100%;
+            background: #22c55e;
+        }
+
+        /* Deck & Elixir Bar */
+        .deck-bar {
+            height: 150px;
+            background: #0f172a;
+            border-top: 3px solid #334155;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            gap: 8px;
+        }
+
+        .elixir-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .elixir-bar-outer {
+            flex: 1;
+            height: 16px;
+            background: #334155;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #475569;
+        }
+
+        .elixir-bar-inner {
+            height: 100%;
+            width: 50%;
+            background: linear-gradient(90deg, #d946ef, #a855f7);
+            transition: width 0.1s linear;
+        }
+
+        .elixir-text {
+            font-weight: 900;
+            color: #d946ef;
+            width: 30px;
+            font-size: 14px;
+        }
+
+        .cards-list {
+            display: flex;
+            justify-content: space-between;
+            gap: 4px;
+        }
+
+        .card {
+            flex: 1;
+            height: 72px;
+            background: #1e293b;
+            border: 2px solid #475569;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px;
+            cursor: pointer;
+            transition: transform 0.1s, border-color 0.2s;
+        }
+
+        .card:hover { transform: translateY(-3px); }
+        .card.selected { border-color: #f59e0b; background: rgba(245, 158, 11, 0.15); transform: translateY(-5px); }
+        .card.disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        .card-name { font-size: 10px; font-weight: bold; text-align: center; }
+        .card-cost {
+            background: #d946ef;
+            color: #fff;
+            font-weight: 900;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+
+        <!-- MAIN MENU -->
+        <div class="screen-overlay" id="main-menu">
+            <h1>Clash Royale<br>History Edition</h1>
+            <p>Answer history questions to deploy troops! Choose AI Difficulty:</p>
+            <button class="menu-btn" onclick="startGame('easy')">Easy AI (Slow Spawns)</button>
+            <button class="menu-btn" onclick="startGame('medium')">Medium AI (Standard)</button>
+            <button class="menu-btn" onclick="startGame('hard')">Hard AI (Fast Spawns)</button>
+        </div>
+
+        <!-- MANDATORY DEPLOYMENT QUIZ OVERLAY -->
+        <div class="screen-overlay" id="quiz-overlay" style="display: none;">
+            <div class="quiz-card">
+                <h3>Answer to Deploy Unit</h3>
+                <p id="quiz-q">Question text goes here...</p>
+                <div id="quiz-opts"></div>
+            </div>
+        </div>
+
+        <!-- GAME OVER OVERLAY -->
+        <div class="screen-overlay" id="gameover-overlay" style="display: none;">
+            <h1 id="gameover-title">VICTORY!</h1>
+            <p id="gameover-desc">You destroyed the enemy king!</p>
+            <button class="menu-btn" onclick="location.reload()">Return to Menu</button>
+        </div>
+
+        <!-- ARENA FIELD -->
+        <div class="arena" id="arena">
+            <div class="timer-badge" id="timer-disp">3:00</div>
+
+            <div class="river">
+                <div class="bridge bridge-left"></div>
+                <div class="bridge bridge-right"></div>
+            </div>
+
+            <!-- Enemy Towers -->
+            <div class="tower enemy-tower tower-enemy-king" id="e-king"><div class="tower-hp"><div class="tower-hp-fill" id="hp-e-king"></div></div>👑</div>
+            <div class="tower enemy-tower tower-enemy-left" id="e-left"><div class="tower-hp"><div class="tower-hp-fill" id="hp-e-left"></div></div>🏰</div>
+            <div class="tower enemy-tower tower-enemy-right" id="e-right"><div class="tower-hp"><div class="tower-hp-fill" id="hp-e-right"></div></div>🏰</div>
+
+            <!-- Player Towers -->
+            <div class="tower player-tower tower-player-king" id="p-king"><div class="tower-hp"><div class="tower-hp-fill" id="hp-p-king"></div></div>👑</div>
+            <div class="tower player-tower tower-player-left" id="p-left"><div class="tower-hp"><div class="tower-hp-fill" id="hp-p-left"></div></div>🏰</div>
+            <div class="tower player-tower tower-player-right" id="p-right"><div class="tower-hp"><div class="tower-hp-fill" id="hp-p-right"></div></div>🏰</div>
+        </div>
+
+        <!-- DECK & ELIXIR -->
+        <div class="deck-bar">
+            <div class="elixir-container">
+                <span class="elixir-text" id="elixir-num">5</span>
+                <div class="elixir-bar-outer">
+                    <div class="elixir-bar-inner" id="elixir-fill"></div>
+                </div>
+            </div>
+            <div class="cards-list" id="cards-container"></div>
+        </div>
+
+    </div>
+
+    <script>
+        const CARDS = [
+            { id: 'knight', name: 'Knight', cost: 3, hp: 600, dmg: 45, speed: 1.2, range: 20, icon: '🗡️' },
+            { id: 'archer', name: 'Archer', cost: 2, hp: 250, dmg: 35, speed: 1.5, range: 110, icon: '🏹' },
+            { id: 'mage', name: 'Mage', cost: 4, hp: 300, dmg: 80, speed: 1.1, range: 90, icon: '🔥' },
+            { id: 'ninja', name: 'Ninja', cost: 3, hp: 350, dmg: 65, speed: 2.2, range: 20, icon: '⚔️' },
+            { id: 'giant', name: 'Giant', cost: 5, hp: 1600, dmg: 70, speed: 0.6, range: 25, targetTowers: true, icon: '🛡️' }
+        ];
+
+        const QUIZ = [
+            { 
+                q: "In President Bush's 9/11 speech, how did he explain why America was targeted?", 
+                options: [
+                    "Because of strategic oil interests in the Persian Gulf", 
+                    "Because America is the brightest beacon for freedom and opportunity", 
+                    "To weaken modern Western allies in the Middle East", 
+                    "Due to broken promises made at the Paris Peace Conference"
+                ], 
+                ans: 1 
+            },
+            { 
+                q: "What fundamental waterway opened in 1869 that drew British military and economic focus into the Middle East?", 
+                options: ["Panama Canal", "Corinth Canal", "Suez Canal", "Erie Canal"], 
+                ans: 2 
+            },
+            { 
+                q: "Why were Western nations increasingly eager to control events in the Gulf region by 1910?", 
+                options: [
+                    "To secure newly discovered oil fields to power ships and machinery", 
+                    "To dismantle the ancient Roman influence across North Africa", 
+                    "To enforce the diplomatic terms set by the Treaty of Versailles", 
+                    "To stop Theodor Herzl from starting the Zionist Movement"
+                ], 
+                ans: 0 
+            },
+            { 
+                q: "During WWI, what incentive did Great Britain offer Arab leaders to persuade them to fight against the Ottoman Empire?", 
+                options: [
+                    "Control over the Suez Canal trade route profits", 
+                    "Ownership of British naval fleet machinery", 
+                    "Promising to give them their own single great nation post-war", 
+                    "Immediate citizenship status within Western Europe"
+                ], 
+                ans: 2 
+            },
+            { 
+                q: "What promise did Britain break at the 1919 Paris Peace Conference after WWI ended?", 
+                options: [
+                    "They refused to sell oil back to Gulf region merchants", 
+                    "They organized Arab lands into mandate territories under British/French control", 
+                    "They handed full regional sovereignty back to the Ottoman Empire", 
+                    "They cancelled the Balfour Declaration without warning"
+                ], 
+                ans: 1 
+            },
+            { 
+                q: "What was the core goal of the Zionist Movement founded by Theodor Herzl in the late 19th century?", 
+                options: [
+                    "To set up a new home for Jewish people back in Palestine ('Zion')", 
+                    "To build a single unified Arab empire governed by ancient law", 
+                    "To secure exclusive trade agreements with British oil companies", 
+                    "To rebuild the Ottoman Empire after its defeat in World War I"
+                ], 
+                ans: 0 
+            },
+            { 
+                q: "What was the 1917 'Balfour Declaration' issued by British Minister Lord Balfour?", 
+                options: [
+                    "A treaty dividing Ottoman lands between France and the US", 
+                    "A pledge of British support to help Jews win a homeland in Palestine", 
+                    "A declaration of war against the Central Powers", 
+                    "A official mandate surrendering the Suez Canal to Egypt"
+                ], 
+                ans: 1 
+            },
+            { 
+                q: "What name was given to individuals who wanted all Muslims to live in one powerful nation following ancient Muslim laws?", 
+                options: ["Zionists", "Central Powers", "Islamists", "Ottomans"], 
+                ans: 2 
+            }
+        ];
+
+        let state = {
+            difficulty: 'medium',
+            timeLeft: 180,
+            elixir: 5,
+            maxElixir: 10,
+            selectedCard: null,
+            pendingDeployment: null,
+            troops: [],
+            towers: {},
+            gameActive: false,
+            isPaused: false
+        };
+
+        const arena = document.getElementById('arena');
+        const elixirFill = document.getElementById('elixir-fill');
+        const elixirNum = document.getElementById('elixir-num');
+        const cardsContainer = document.getElementById('cards-container');
+        const mainMenu = document.getElementById('main-menu');
+        const quizOverlay = document.getElementById('quiz-overlay');
+        const gameoverOverlay = document.getElementById('gameover-overlay');
+        const timerDisp = document.getElementById('timer-disp');
+
+        function startGame(difficulty) {
+            state.difficulty = difficulty;
+            mainMenu.style.display = 'none';
+            state.gameActive = true;
+            initTowers();
+            renderCards();
+            
+            // Set AI Interval based on difficulty
+            let aiRate = 6000;
+            if (difficulty === 'medium') aiRate = 4500;
+            if (difficulty === 'hard') aiRate = 2800;
+
+            setInterval(aiLoop, aiRate);
+            setInterval(updateTimer, 1000);
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateTimer() {
+            if (!state.gameActive || state.isPaused) return;
+            state.timeLeft--;
+            const m = Math.floor(state.timeLeft / 60);
+            const s = state.timeLeft % 60;
+            timerDisp.innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+
+            if (state.timeLeft <= 0) {
+                const pHP = state.towers['p-king'].hp;
+                const eHP = state.towers['e-king'].hp;
+                if (pHP > eHP) endGame('VICTORY!', 'Time ran out and you had higher King Tower health!');
+                else if (eHP > pHP) endGame('DEFEAT!', 'Time ran out and the enemy had higher King Tower health!');
+                else endGame('DRAW!', 'Time ran out with equal King Tower health!');
+            }
+        }
+
+        function initTowers() {
+            state.towers = {
+                'e-king': { id: 'e-king', team: 'enemy', x: 215, y: 50, hp: 2500, maxHp: 2500, range: 130 },
+                'e-left': { id: 'e-left', team: 'enemy', x: 80, y: 85, hp: 1500, maxHp: 1500, range: 110 },
+                'e-right': { id: 'e-right', team: 'enemy', x: 350, y: 85, hp: 1500, maxHp: 1500, range: 110 },
+                
+                'p-king': { id: 'p-king', team: 'player', x: 215, y: 510, hp: 2500, maxHp: 2500, range: 130 },
+                'p-left': { id: 'p-left', team: 'player', x: 80, y: 475, hp: 1500, maxHp: 1500, range: 110 },
+                'p-right': { id: 'p-right', team: 'player', x: 350, y: 475, hp: 1500, maxHp: 1500, range: 110 }
+            };
+        }
+
+        function renderCards() {
+            cardsContainer.innerHTML = '';
+            CARDS.forEach(card => {
+                const cDiv = document.createElement('div');
+                const isAffordable = state.elixir >= card.cost;
+                const isSelected = state.selectedCard && state.selectedCard.id === card.id;
+
+                cDiv.className = `card ${isSelected ? 'selected' : ''} ${!isAffordable ? 'disabled' : ''}`;
+                cDiv.innerHTML = `
+                    <span class="card-name">${card.name}</span>
+                    <span class="card-cost">${card.cost}</span>
+                `;
+                
+                cDiv.onclick = () => {
+                    if (state.elixir >= card.cost) {
+                        state.selectedCard = card;
+                        renderCards();
+                    }
+                };
+                cardsContainer.appendChild(cDiv);
+            });
+        }
+
+        /* Mandatory Quiz Trigger on Placement */
+        arena.addEventListener('click', (e) => {
+            if (!state.gameActive || state.isPaused || !state.selectedCard) return;
+
+            const rect = arena.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            if (y < 280) return; // Must deploy on own side
+
+            // Store pending troop placement data and trigger mandatory quiz
+            state.pendingDeployment = { card: state.selectedCard, x, y };
+            triggerQuiz();
+        });
+
+        function triggerQuiz() {
+            state.isPaused = true;
+            const qObj = QUIZ[Math.floor(Math.random() * QUIZ.length)];
+            document.getElementById('quiz-q').innerText = qObj.q;
+
+            const optsBox = document.getElementById('quiz-opts');
+            optsBox.innerHTML = '';
+
+            qObj.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'opt-btn';
+                btn.innerText = opt;
+                btn.onclick = () => answerQuiz(idx === qObj.ans);
+                optsBox.appendChild(btn);
+            });
+
+            quizOverlay.style.display = 'flex';
+        }
+
+        function answerQuiz(isCorrect) {
+            quizOverlay.style.display = 'none';
+            state.isPaused = false;
+
+            if (isCorrect && state.pendingDeployment) {
+                const { card, x, y } = state.pendingDeployment;
+                spawnTroop(card, 'player', x, y);
+                state.elixir -= card.cost;
+            } else {
+                alert("Incorrect answer! Troop deployment cancelled.");
+            }
+
+            state.selectedCard = null;
+            state.pendingDeployment = null;
+            renderCards();
+        }
+
+        function spawnTroop(cardData, team, x, y) {
+            const id = 't-' + Math.random().toString(36).substr(2, 9);
+            const elem = document.createElement('div');
+            elem.className = `troop troop-${team}`;
+            elem.innerHTML = `
+                <div class="troop-hp-container"><div class="troop-hp-bar" id="hp-${id}"></div></div>
+                ${cardData.icon || cardData.name[0]}
+            `;
+            arena.appendChild(elem);
+
+            state.troops.push({
+                id, team, elem, x, y,
+                hp: cardData.hp, maxHp: cardData.hp,
+                dmg: cardData.dmg, speed: cardData.speed,
+                range: cardData.range, targetTowers: cardData.targetTowers || false,
+                lastAttack: 0
+            });
+        }
+
+        /* Enemy AI Spawner */
+        function aiLoop() {
+            if (!state.gameActive || state.isPaused) return;
+            const randomCard = CARDS[Math.floor(Math.random() * CARDS.length)];
+            const spawnX = Math.random() > 0.5 ? 80 : 350;
+            spawnTroop(randomCard, 'enemy', spawnX, 80);
+        }
+
+        function gameLoop() {
+            if (!state.gameActive) return;
+
+            if (!state.isPaused) {
+                if (state.elixir < state.maxElixir) {
+                    state.elixir += 0.015;
+                    elixirNum.innerText = Math.floor(state.elixir);
+                    elixirFill.style.width = (state.elixir / state.maxElixir * 100) + '%';
+                }
+
+                state.troops.forEach(troop => {
+                    let targets = [];
+                    if (troop.targetTowers) {
+                        targets = Object.values(state.towers).filter(t => t.team !== troop.team && t.hp > 0);
+                    } else {
+                        const enemyTroops = state.troops.filter(t => t.team !== troop.team && t.hp > 0);
+                        const enemyTowers = Object.values(state.towers).filter(t => t.team !== troop.team && t.hp > 0);
+                        targets = [...enemyTroops, ...enemyTowers];
+                    }
+
+                    let nearest = null;
+                    let minDist = Infinity;
+
+                    targets.forEach(target => {
+                        const dist = Math.hypot(target.x - troop.x, target.y - troop.y);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            nearest = target;
+                        }
+                    });
+
+                    if (nearest) {
+                        if (minDist <= troop.range) {
+                            const now = Date.now();
+                            if (now - troop.lastAttack >= 1000) {
+                                nearest.hp -= troop.dmg;
+                                troop.lastAttack = now;
+                                updateTowerHp();
+                                if (nearest.maxHp !== 2500 && nearest.maxHp !== 1500) {
+                                    updateTroopHp(nearest);
+                                }
+                            }
+                        } else {
+                            const angle = Math.atan2(nearest.y - troop.y, nearest.x - troop.x);
+                            troop.x += Math.cos(angle) * troop.speed;
+                            troop.y += Math.sin(angle) * troop.speed;
+                        }
+                    }
+
+                    troop.elem.style.left = troop.x + 'px';
+                    troop.elem.style.top = troop.y + 'px';
+                });
+
+                Object.values(state.towers).forEach(tower => {
+                    if (tower.hp <= 0) return;
+                    const enemiesInArea = state.troops.filter(t => t.team !== tower.team && t.hp > 0);
+                    
+                    enemiesInArea.forEach(enemy => {
+                        const dist = Math.hypot(enemy.x - tower.x, enemy.y - tower.y);
+                        if (dist <= tower.range) {
+                            const now = Date.now();
+                            if (!tower.lastAttack || now - tower.lastAttack >= 800) {
+                                enemy.hp -= 30;
+                                tower.lastAttack = now;
+                                updateTroopHp(enemy);
+                            }
+                        }
+                    });
+                });
+
+                state.troops = state.troops.filter(t => {
+                    if (t.hp <= 0) {
+                        t.elem.remove();
+                        return false;
+                    }
+                    return true;
+                });
+
+                if (state.towers['e-king'].hp <= 0) endGame('VICTORY!', 'You destroyed the Enemy King Tower!');
+                if (state.towers['p-king'].hp <= 0) endGame('DEFEAT!', 'The Enemy destroyed your King Tower!');
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateTowerHp() {
+            Object.values(state.towers).forEach(t => {
+                const bar = document.getElementById(`hp-${t.id}`);
+                if (bar) {
+                    const pct = Math.max(0, (t.hp / t.maxHp) * 100);
+                    bar.style.width = pct + '%';
+                    if (t.hp <= 0) document.getElementById(t.id).style.opacity = '0.3';
+                }
+            });
+        }
+
+        function updateTroopHp(troop) {
+            const bar = document.getElementById(`hp-${troop.id}`);
+            if (bar) {
+                const pct = Math.max(0, (troop.hp / troop.maxHp) * 100);
+                bar.style.width = pct + '%';
+            }
+        }
+
+        function endGame(title, desc) {
+            state.gameActive = false;
+            document.getElementById('gameover-title').innerText = title;
+            document.getElementById('gameover-desc').innerText = desc;
+            gameoverOverlay.style.display = 'flex';
+        }
+    </script>
+</body>
+</html>
